@@ -13,7 +13,12 @@ const authRoute = require("./routes/AuthRoute");
 const app = express();
 
 app.use(bodyParser.json());
-app.use(cors());
+app.use(
+  cors({
+    origin: ["http://localhost:3000", "http://localhost:3001"],
+    credentials: true,
+  }),
+);
 app.use(cookieParser());
 
 const PORT = process.env.PORT || 8080;
@@ -31,15 +36,41 @@ app.get("/allPositions", async (req, res) => {
   res.json(allPositions);
 });
 
-app.post("/newOrder", async (req, res) => {
-  let newOrder = new OrdersModel({
-    name: req.body.name,
-    qty: req.body.qty,
-    price: req.body.price,
-    mode: req.body.mode,
-  });
+app.get("/allOrders", async (req, res) => {
+  let allOrders = await OrdersModel.find({});
+  res.json(allOrders);
+});
 
-  newOrder.save();
+app.post("/newOrder", async (req, res) => {
+  const { name, qty, price, mode } = req.body;
+
+  const newOrder = new OrdersModel({ name, qty, price, mode });
+  await newOrder.save();
+
+  // a buy order should actually land in Holdings, otherwise the
+  // dashboard has no way of showing what the user owns
+  if (mode === "BUY") {
+    const existingHolding = await HoldingsModel.findOne({ name });
+
+    if (existingHolding) {
+      const totalQty = existingHolding.qty + Number(qty);
+      const totalCost = existingHolding.avg * existingHolding.qty + price * qty;
+
+      existingHolding.qty = totalQty;
+      existingHolding.avg = totalCost / totalQty;
+      existingHolding.price = price;
+      await existingHolding.save();
+    } else {
+      await HoldingsModel.create({
+        name,
+        qty,
+        avg: price,
+        price,
+        net: "0.00%",
+        day: "0.00%",
+      });
+    }
+  }
   res.send("Order added!");
 });
 
