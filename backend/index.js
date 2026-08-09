@@ -2,6 +2,7 @@ require("dotenv").config();
 
 const express = require("express");
 const mongoose = require("mongoose");
+const axios = require("axios");
 const { HoldingsModel } = require("./model/HoldingsModel");
 const { PositionsModel } = require("./model/PositionsModel");
 const bodyParser = require("body-parser");
@@ -25,6 +26,7 @@ app.use(cookieParser());
 
 const PORT = process.env.PORT || 8080;
 const URI = process.env.MONGO_URI;
+const TWELVE_DATA_API_KEY = process.env.TWELVE_DATA_API_KEY;
 
 app.use("/", authRoute);
 
@@ -77,6 +79,85 @@ app.post("/newOrder", requireAuth, async (req, res) => {
   }
 
   res.send("Order added!");
+});
+
+// --- live quotes proxy (Twelve Data) ---
+// keeps the API key server-side and caches for 30s so clicking around
+// the dashboard doesn't burn through the daily quota in a few refreshes
+const quoteCache = new Map(); // symbol -> { data, fetchedAt }
+const CACHE_TTL_MS = 30 * 1000;
+
+app.get("/quotes", requireAuth, async (req, res) => {
+  const symbolsParam = req.query.symbols; // comma separated, e.g. "INFY,TCS,ONGC"
+  if (!symbolsParam) {
+    return res.status(400).json({ message: "symbols query param is required" });
+  }
+
+  if (!TWELVE_DATA_API_KEY) {
+    return res
+      .status(503)
+      .json({ message: "Live quotes are not configured on this server" });
+  }
+
+  const requestedSymbols = symbolsParam.split(",").map((s) => s.trim());
+  const now = Date.now();
+
+  const cached = {};
+  const toFetch = [];
+
+  requestedSymbols.forEach((symbol) => {
+    const entry = quoteCache.get(symbol);
+    if (entry && now - entry.fetchedAt < CACHE_TTL_MS) {
+      cached[symbol] = entry.data;
+    } else {
+      toFetch.push(symbol);
+    }
+  });
+
+  if (toFetch.length === 0) {
+    return res.json(cached);
+  }
+
+  try {
+    // NSE-listed symbols need the :NSE exchange suffix for Twelve Data
+    const tdSymbols = toFetch.map((s) => `${s}:NSE`).join(",");
+
+    const response = await axios.get("https://api.twelvedata.com/quote", {
+      params: { symbol: tdSymbols, apikey: TWELVE_DATA_API_KEY },
+    });
+
+    // single symbol returns one object, multiple returns keyed by symbol -
+    // normalize both shapes into { "INFY": {...}, "TCS": {...} }
+    const raw =
+      toFetch.length === 1
+        ? { [`${toFetch[0]}:NSE`]: response.data }
+        : response.data;
+
+    toFetch.forEach((symbol) => {
+      const quote = raw[`${symbol}:NSE`];
+      if (quote && !quote.code) {
+        const data = {
+          name: symbol,
+          price: parseFloat(quote.close),
+          percent: `${parseFloat(quote.percent_change).toFixed(2)}%`,
+          isDown: parseFloat(quote.percent_change) < 0,
+        };
+        quoteCache.set(symbol, { data, fetchedAt: now });
+        cached[symbol] = data;
+      }
+    });
+
+    res.json(cached);
+  } catch (error) {
+    console.error("Twelve Data request failed:", error.message);
+    // fall back to whatever we have cached, even if stale, rather than
+    // breaking the whole watchlist over a rate limit or network blip
+    toFetch.forEach((symbol) => {
+      const entry = quoteCache.get(symbol);
+      if (entry) cached[symbol] = entry.data;
+    });
+    res.json(cached);
+  }
 });
 
 app.listen(PORT, () => {
