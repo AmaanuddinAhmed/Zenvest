@@ -6,9 +6,14 @@ const Holdings = () => {
   const [allHoldings, setAllHoldings] = useState([]);
 
   useEffect(() => {
-    api.get("/allHoldings").then((res) => {
-      setAllHoldings(res.data);
-    });
+    api
+      .get("/allHoldings")
+      .then((res) => {
+        setAllHoldings(res.data);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch holdings:", err);
+      });
   }, []);
 
   const labels = allHoldings.map((subArray) => subArray["name"]);

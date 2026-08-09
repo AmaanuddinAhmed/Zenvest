@@ -5,9 +5,14 @@ const Positions = () => {
   const [allPositions, setAllPositions] = useState([]);
 
   useEffect(() => {
-    api.get("/allPositions").then((res) => {
-      setAllPositions(res.data);
-    });
+    api
+      .get("/allPositions")
+      .then((res) => {
+        setAllPositions(res.data);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch positions:", err);
+      });
   }, []);
 
   return (

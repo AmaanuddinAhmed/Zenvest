@@ -6,9 +6,14 @@ const Orders = () => {
   const [allOrders, setAllOrders] = useState([]);
 
   useEffect(() => {
-    api.get("/allOrders").then((res) => {
-      setAllOrders(res.data);
-    });
+    api
+      .get("/allOrders")
+      .then((res) => {
+        setAllOrders(res.data);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch orders:", err);
+      });
   }, []);
 
   if (allOrders.length === 0) {

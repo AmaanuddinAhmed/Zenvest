@@ -13,14 +13,19 @@ const BuyActionWindow = ({ uid }) => {
   const generalContext = useContext(GeneralContext);
 
   const handleBuyClick = () => {
-    api.post("/newOrder", {
-      name: uid,
-      qty: stockQuantity,
-      price: stockPrice,
-      mode: "BUY",
-    });
-
-    generalContext.closeBuyWindow();
+    api
+      .post("/newOrder", {
+        name: uid,
+        qty: stockQuantity,
+        price: stockPrice,
+        mode: "BUY",
+      })
+      .then(() => {
+        generalContext.closeBuyWindow();
+      })
+      .catch((err) => {
+        console.error("Failed to place order:", err);
+      });
   };
 
   const handleCancelClick = () => {
