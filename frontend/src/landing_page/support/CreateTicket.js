@@ -34,7 +34,7 @@ function CreateTicket() {
         </div>
         <div className="col-4 p-5">
           <h4 className="mb-3">
-            <i class="fa-solid fa-circle-user"></i> Your Zerodha Account
+            <i class="fa-solid fa-circle-user"></i> Your Zenvest Account
           </h4>
           <a href="" style={{ lineHeight: "2.5" }}>
             Your Profile

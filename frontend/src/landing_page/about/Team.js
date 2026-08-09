@@ -8,28 +8,32 @@ function Team() {
       </div>
       <div className="row text-muted mt-5 mb-5" style={{ lineHeight: "2rem" }}>
         <div className="col text-center">
-          <img
-            src="media/images/nithinKamath.jpg"
-            alt="Founder"
-            style={{ borderRadius: "100%", width: "50%" }}
-          />
-          <h4 className="mt-4">Nithin Kamath</h4>
-          <h6 className="mt-3">Founder, CEO</h6>
+          <div
+            style={{
+              borderRadius: "100%",
+              width: "50%",
+              aspectRatio: "1",
+              background: "#e2e8f0",
+              margin: "0 auto",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "3rem",
+              color: "#1e293b",
+            }}
+          >
+            A
+          </div>
+          <h4 className="mt-4">Founder, CEO</h4>
         </div>
         <div className="col">
           <p>
-            Nithin bootstrapped and founded Zerodha in 2010 to overcome the
-            hurdles he faced during his decade long stint as a trader. Today,
-            Zerodha has changed the landscape of the Indian broking industry.
+            Zenvest was built by a small team who wanted a simpler way to trade
+            and invest, without the clutter that most platforms come with.
           </p>
           <p>
-            He is a member of the SEBI Secondary Market Advisory Committee
-            (SMAC) and the Market Data Advisory Committee (MDAC).
-          </p>
-          <p>Playing basketball is his zen.</p>
-          <p>
-            Connect on <a href="#">Homepage</a> / <a href="#">TradingQnA</a> /
-            <a href="#">Twitter</a>
+            We're a young, in-progress project - built to learn, and to keep
+            growing.
           </p>
         </div>
       </div>

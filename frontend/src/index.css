@@ -7,6 +7,23 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Zenvest brand color - overrides Bootstrap's default blue everywhere
+   .btn-primary / .text-primary / .bg-primary are used */
+:root {
+  --bs-primary: #0f766e;
+  --bs-primary-rgb: 15, 118, 110;
+}
+
+.btn-primary {
+  background-color: #0f766e;
+  border-color: #0f766e;
+}
+
+.btn-primary:hover {
+  background-color: #14b8a6;
+  border-color: #14b8a6;
+}
+
 code {
   font-family:
     source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
@@ -25,7 +42,7 @@ footer a {
 }
 
 #supportHero {
-  background-color: #397dd0;
+  background-color: #0f766e;
   color: white;
 }
 
