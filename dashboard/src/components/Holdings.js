@@ -1,16 +1,19 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../api";
 import { VerticalBarChart } from "./VerticalBarChart";
-// import { holdings } from "../data/data";
 
 const Holdings = () => {
   const [allHoldings, setAllHoldings] = useState([]);
 
   useEffect(() => {
-    axios.get("http://localhost:8080/allHoldings").then((res) => {
-      console.log(res.data);
-      setAllHoldings(res.data);
-    });
+    api
+      .get("/allHoldings")
+      .then((res) => {
+        setAllHoldings(res.data);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch holdings:", err);
+      });
   }, []);
 
   const labels = allHoldings.map((subArray) => subArray["name"]);

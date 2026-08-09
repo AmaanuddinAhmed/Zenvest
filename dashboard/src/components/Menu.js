@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import api from "../api";
 
-const Menu = () => {
+const Menu = ({ username }) => {
   const [selectedMenu, setSelectedMenu] = useState(0);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
 
@@ -11,6 +12,12 @@ const Menu = () => {
 
   const handleProfileClick = () => {
     setIsProfileDropdownOpen(!isProfileDropdownOpen);
+  };
+
+  const handleLogout = async () => {
+    await api.post("/logout");
+    window.location.href =
+      process.env.REACT_APP_FRONTEND_URL || "http://localhost:3000/login";
   };
 
   const menuClass = "menu";
@@ -66,9 +73,20 @@ const Menu = () => {
         </ul>
         <hr />
         <div className="profile" onClick={handleProfileClick}>
-          <div className="avatar">ZU</div>
-          <p className="username">USERID</p>
+          <div className="avatar">
+            {username ? username.slice(0, 2).toUpperCase() : "ZU"}
+          </div>
+          <p className="username">{username || "USERID"}</p>
         </div>
+        {isProfileDropdownOpen && (
+          <p
+            className="menu"
+            style={{ cursor: "pointer", textAlign: "center" }}
+            onClick={handleLogout}
+          >
+            Logout
+          </p>
+        )}
       </div>
     </div>
   );

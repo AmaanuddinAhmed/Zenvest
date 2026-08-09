@@ -2,12 +2,8 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../../api";
 
-function Signup() {
-  const [formData, setFormData] = useState({
-    username: "",
-    email: "",
-    password: "",
-  });
+function Login() {
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
 
   const handleChange = (e) => {
@@ -19,12 +15,12 @@ function Signup() {
     setError("");
 
     try {
-      const res = await api.post("/signup", formData);
+      const res = await api.post("/login", formData);
       if (res.data.success) {
         window.location.href =
           process.env.REACT_APP_DASHBOARD_URL || "http://localhost:3001";
       } else {
-        setError(res.data.message || "Signup failed");
+        setError(res.data.message || "Login failed");
       }
     } catch (err) {
       setError(err.response?.data?.message || "Something went wrong");
@@ -33,23 +29,11 @@ function Signup() {
 
   return (
     <div className="container p-5" style={{ maxWidth: "450px" }}>
-      <h2 className="mb-4">Create an account</h2>
+      <h2 className="mb-4">Log in</h2>
 
       {error && <div className="alert alert-danger">{error}</div>}
 
       <form onSubmit={handleSubmit}>
-        <div className="mb-3">
-          <label className="form-label">Username</label>
-          <input
-            type="text"
-            name="username"
-            className="form-control"
-            value={formData.username}
-            onChange={handleChange}
-            required
-          />
-        </div>
-
         <div className="mb-3">
           <label className="form-label">Email</label>
           <input
@@ -75,15 +59,15 @@ function Signup() {
         </div>
 
         <button type="submit" className="btn btn-primary w-100">
-          Sign up
+          Log in
         </button>
       </form>
 
       <p className="mt-3">
-        Already have an account? <Link to="/login">Log in</Link>
+        New here? <Link to="/signup">Create an account</Link>
       </p>
     </div>
   );
 }
 
-export default Signup;
+export default Login;

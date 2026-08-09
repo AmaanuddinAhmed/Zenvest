@@ -9,11 +9,18 @@ const cors = require("cors");
 const { OrdersModel } = require("./model/OrdersModel");
 const cookieParser = require("cookie-parser");
 const authRoute = require("./routes/AuthRoute");
+const { requireAuth } = require("./middleware/AuthMiddleware");
 
 const app = express();
 
 app.use(bodyParser.json());
-app.use(cors());
+app.use(
+  cors({
+    // frontend (marketing site) + dashboard run on different ports locally
+    origin: ["http://localhost:3000", "http://localhost:3001"],
+    credentials: true,
+  }),
+);
 app.use(cookieParser());
 
 const PORT = process.env.PORT || 8080;
@@ -21,25 +28,54 @@ const URI = process.env.MONGO_URI;
 
 app.use("/", authRoute);
 
-app.get("/allHoldings", async (req, res) => {
-  let allHoldings = await HoldingsModel.find({});
+app.get("/allHoldings", requireAuth, async (req, res) => {
+  const allHoldings = await HoldingsModel.find({ userId: req.userId });
   res.json(allHoldings);
 });
 
-app.get("/allPositions", async (req, res) => {
-  let allPositions = await PositionsModel.find({});
+app.get("/allPositions", requireAuth, async (req, res) => {
+  const allPositions = await PositionsModel.find({ userId: req.userId });
   res.json(allPositions);
 });
 
-app.post("/newOrder", async (req, res) => {
-  let newOrder = new OrdersModel({
-    name: req.body.name,
-    qty: req.body.qty,
-    price: req.body.price,
-    mode: req.body.mode,
-  });
+app.get("/allOrders", requireAuth, async (req, res) => {
+  const allOrders = await OrdersModel.find({ userId: req.userId });
+  res.json(allOrders);
+});
 
-  newOrder.save();
+app.post("/newOrder", requireAuth, async (req, res) => {
+  const { name, qty, price, mode } = req.body;
+  const userId = req.userId;
+
+  const newOrder = new OrdersModel({ userId, name, qty, price, mode });
+  await newOrder.save();
+
+  // a buy order should actually land in Holdings, otherwise the
+  // dashboard has no way of showing what the user owns
+  if (mode === "BUY") {
+    const existingHolding = await HoldingsModel.findOne({ userId, name });
+
+    if (existingHolding) {
+      const totalQty = existingHolding.qty + Number(qty);
+      const totalCost = existingHolding.avg * existingHolding.qty + price * qty;
+
+      existingHolding.qty = totalQty;
+      existingHolding.avg = totalCost / totalQty;
+      existingHolding.price = price;
+      await existingHolding.save();
+    } else {
+      await HoldingsModel.create({
+        userId,
+        name,
+        qty,
+        avg: price,
+        price,
+        net: "+0.00%",
+        day: "+0.00%",
+      });
+    }
+  }
+
   res.send("Order added!");
 });
 
