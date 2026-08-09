@@ -11,6 +11,7 @@ const { OrdersModel } = require("./model/OrdersModel");
 const cookieParser = require("cookie-parser");
 const authRoute = require("./routes/AuthRoute");
 const { requireAuth } = require("./middleware/AuthMiddleware");
+const { validateNewOrder } = require("./middleware/ValidationMiddleware");
 
 const app = express();
 
@@ -45,7 +46,7 @@ app.get("/allOrders", requireAuth, async (req, res) => {
   res.json(allOrders);
 });
 
-app.post("/newOrder", requireAuth, async (req, res) => {
+app.post("/newOrder", requireAuth, validateNewOrder, async (req, res) => {
   const { name, qty, price, mode } = req.body;
   const userId = req.userId;
 
@@ -150,8 +151,6 @@ app.get("/quotes", requireAuth, async (req, res) => {
     res.json(cached);
   } catch (error) {
     console.error("Twelve Data request failed:", error.message);
-    // fall back to whatever we have cached, even if stale, rather than
-    // breaking the whole watchlist over a rate limit or network blip
     toFetch.forEach((symbol) => {
       const entry = quoteCache.get(symbol);
       if (entry) cached[symbol] = entry.data;
