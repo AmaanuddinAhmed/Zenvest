@@ -1,6 +1,6 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { Tooltip, Grow } from "@mui/material";
-import { watchList } from "../data/data";
+import { watchList as staticWatchList } from "../data/data";
 import {
   BarChartOutlined,
   KeyboardArrowDown,
@@ -9,8 +9,40 @@ import {
 } from "@mui/icons-material";
 import GeneralContext from "./GeneralContext";
 import { DoughnutChart } from "./DoughnutChart";
+import api from "../api";
+
+const REFRESH_INTERVAL_MS = 60 * 1000; // 60s - keeps well within the free API quota
 
 const WatchList = () => {
+  const [watchList, setWatchList] = useState(staticWatchList);
+
+  useEffect(() => {
+    // one unique-symbol list so refreshes don't waste requests on duplicates
+    const symbols = [...new Set(staticWatchList.map((s) => s.name))];
+
+    const fetchQuotes = () => {
+      api
+        .get(`/quotes?symbols=${symbols.join(",")}`)
+        .then((res) => {
+          const quotes = res.data;
+          setWatchList((prev) =>
+            prev.map((stock) =>
+              quotes[stock.name] ? { ...stock, ...quotes[stock.name] } : stock,
+            ),
+          );
+        })
+        .catch((err) => {
+          // stick with whatever prices we already have rather than
+          // breaking the watchlist over a rate limit or network blip
+          console.error("Failed to fetch live quotes:", err);
+        });
+    };
+
+    fetchQuotes();
+    const interval = setInterval(fetchQuotes, REFRESH_INTERVAL_MS);
+    return () => clearInterval(interval);
+  }, []);
+
   const data = {
     labels: watchList.map((subArray) => subArray["name"]),
     datasets: [

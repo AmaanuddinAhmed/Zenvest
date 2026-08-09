@@ -1,7 +1,7 @@
 {
-  "name": "backend",
+  "name": "zenvest-backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "Express + MongoDB API for the Zenvest trading platform",
   "main": "index.js",
   "scripts": {
     "start": "nodemon index.js",
@@ -15,6 +15,7 @@
     "nodemon": "^3.1.14"
   },
   "dependencies": {
+    "axios": "^1.19.0",
     "bcryptjs": "^3.0.3",
     "body-parser": "^2.3.0",
     "cookie-parser": "^1.4.7",
