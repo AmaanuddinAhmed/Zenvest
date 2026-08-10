@@ -19,7 +19,12 @@ app.use(bodyParser.json());
 app.use(
   cors({
     // frontend (marketing site) + dashboard run on different ports locally
-    origin: ["http://localhost:3000", "http://localhost:3001"],
+    origin: [
+      "http://localhost:3000",
+      "http://localhost:3001",
+      "https://zenvest-frontend.vercel.app",
+      "https://zenvest-dashboard-steel.vercel.app",
+    ],
     credentials: true,
   }),
 );
