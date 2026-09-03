@@ -4,7 +4,7 @@
   "description": "Express + MongoDB API for the Zenvest trading platform",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon index.js",
+    "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
